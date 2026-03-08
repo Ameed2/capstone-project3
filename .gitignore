@@ -1,9 +1,9 @@
 # Data (don't push large datasets; add link in README instead)
 survey_results_public.csv
 survey_results_schema.csv
-# data/*.csv
-# data/*.xlsx
-# data/*.parquet
+data/*.csv
+data/*.xlsx
+data/*.parquet
 
 # Node (if present; capstone is Python)
 node_modules/

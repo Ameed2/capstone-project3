@@ -2,10 +2,21 @@
 
 **Do not commit large or private datasets to GitHub.**
 
-- If your dataset is **small and allowed**: place the file(s) here (e.g. `your_dataset.csv`).
-- If your dataset is **large or from Kaggle/etc.**: keep this folder empty in the repo. In your main README, add:
-  - Link to download the dataset
-  - Short steps to download it and where to save it (e.g. "Save as `data/your_dataset.csv`")
-- Add a small sample file only if the source allows it, for others to run a quick test.
+## This project: E-commerce supply chain dataset
 
-Update the path in your notebook to read from `../data/` (when running from `notebooks/`) or `./data/` as needed.
+- **What one row is:** One order line item (one product in one customer order, with shipping/delivery record).
+- **Target:** `Late_delivery_risk` (0 = on time, 1 = late).
+- **Key columns:** See `PROPOSAL.md` (Section 3.2) for the full list (e.g. Days for shipping (real), Days for shipment (scheduled), Shipping Mode, Order Region, Market, Customer Segment, Category Name, etc.).
+
+### Where to get the data
+
+- Add here the **link** to the dataset (e.g. Kaggle, UCI, or course-provided URL) once confirmed.
+- If the dataset is **small and allowed**: place the file in this folder (e.g. `data/supply_chain.csv` or the name provided by the source).
+- If **large or from Kaggle**: keep this folder empty in the repo. In the main **README**, add:
+  - The download link
+  - Short steps (e.g. "Download from [link], save as `data/your_file.csv`")
+
+### Using the data in the notebook
+
+- **Local:** From project root, use `data/your_file.csv`. From `notebooks/`, use `../data/your_file.csv`.
+- **Colab:** Upload the CSV to session storage (or mount Drive) and set the path in the first data-loading cell (e.g. `"/content/your_file.csv"`).

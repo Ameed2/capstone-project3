@@ -1,100 +1,100 @@
-# [Your Capstone Project Title]
+# Late Delivery Risk Prediction for E-Commerce Supply Chain Optimization
 
 **Team members:** [Names]  
-**Track:** [Supervised / Unsupervised / Time series]
+**Track:** Supervised Learning — Binary Classification  
+**IBT x GGateway Data Science and Machine Learning Bootcamp | 2025**
 
 ---
 
 ## Problem and goal
 
-- What are you trying to solve or discover?
-- Why does it matter? Who is the stakeholder?
+Late deliveries are one of the most damaging and costly problems in e-commerce logistics. This project builds a **binary classification model** that predicts whether an order is at risk of late delivery **before it ships**, using order and shipping data. The goal is to give supply chain / logistics managers a proactive tool to flag high-risk orders and take corrective action (e.g. upgrade shipping, reroute, or alert the customer).
+
+- **Target variable:** `Late_delivery_risk` (0 = on time, 1 = late)
+- **Primary metrics:** Recall on the late-delivery class (minimize missed high-risk orders) and F1-score
+- **Success criteria:** Recall ≥ 75%, F1 ≥ 70% on the held-out test set; interpretable feature importance for the stakeholder
+
+## Who benefits
+
+- **Primary stakeholder:** Supply chain / logistics manager — prioritize intervention, choose smarter shipping modes, reduce refunds and complaints, protect customer satisfaction.
+- **Secondary:** Customer service (fewer reactive complaints), leadership (visibility into fulfillment by region and category).
 
 ## Data
 
-- **Source:** [Link to dataset]
-- **What one row represents:** [e.g. one customer, one day, one transaction]
-- **Limitations or notes:** [optional]
+- **Source:** E-commerce supply chain dataset (order, shipping, customer, product information). Publicly available; link to be added in `data/README.md` or below.
+- **What one row represents:** One order line item — one product within one customer order, with its delivery and shipping record.
+- **Key columns:** `Late_delivery_risk` (target), `Days for shipping (real)`, `Days for shipment (scheduled)`, `Shipping Mode`, `Order Region`, `Market`, `Customer Segment`, `Category Name`, discount/benefit/order status/date, etc. See `PROPOSAL.md` for the full data dictionary.
 
 ## Approach
 
-- Cleaning, EDA, modeling, evaluation (short summary).
+1. **Data loading & cleaning** — Load data, fix types, handle missing values, remove duplicates, treat outliers.
+2. **EDA** — Distributions, late vs on-time by shipping mode / region / segment.
+3. **Feature engineering** — Encode categoricals, derive delay gap (real − scheduled days), scale as needed.
+4. **Baseline** — Logistic Regression with train/test split and `class_weight='balanced'` if imbalanced.
+5. **Improved models** — Random Forest, then hyperparameter tuning (e.g. GridSearchCV).
+6. **Evaluation** — Recall, F1, confusion matrix, ROC-AUC in a comparison table.
+7. **Interpretation** — Feature importance so a logistics manager can act on the model.
+
+We avoid data leakage (e.g. do not use `Delivery Status` as a feature when it encodes the outcome). Optional extra: Power BI dashboard after core completion (see `PROPOSAL.md`).
 
 ## Results
 
-- Metric table or key evaluation results.
-- 2–4 key charts (can go in `figures/` or inline).
+- *(To be filled after modeling)* Metric table (Recall, F1, confusion matrix, ROC-AUC).
+- *(To be filled)* Key charts: feature importance, confusion matrix, ROC curve (in `figures/` or inline).
 
 ## Conclusion
 
-- What did you learn?
-- What would you recommend or do next?
+- *(To be filled)* What we learned; what we would recommend or do next.
+
+---
 
 ## How to run this project
 
-**Pick one option and use it consistently.**
+We support **both** Google Colab and local run.
 
-### Option A: Google Colab (recommended for teams)
+### Option A: Google Colab
 
-1. **Upload your notebook**  
-   - Put your main notebook in `notebooks/` (e.g. `notebooks/main.ipynb`).  
-   - Open [Google Colab](https://colab.research.google.com/), then **File → Upload notebook** and choose your `.ipynb` from this repo (after cloning or downloading).
+**One-click open (after the repo is on GitHub):**  
+Replace `YOUR_USERNAME` and `YOUR_REPO` with your GitHub username and repo name (use `master` instead of `main` if your default branch is `master`):
 
-2. **Dataset in Colab**  
-   - **Small dataset:** In Colab, use **Files (left sidebar) → Upload** and upload your CSV/file. In the notebook, read it with the path Colab shows (e.g. `"/content/your_file.csv"`).  
-   - **From Google Drive:** Mount Drive and read from your Drive path:
-     ```python
-     from google.colab import drive
-     drive.mount('/content/drive')
-     # e.g. df = pd.read_csv('/content/drive/MyDrive/your_folder/your_file.csv')
-     ```
-   - **From a URL:** If the dataset has a direct download link:
-     ```python
-     import pandas as pd
-     url = "https://your-dataset-url/your_file.csv"
-     df = pd.read_csv(url)
-     ```
+```
+https://colab.research.google.com/github/YOUR_USERNAME/YOUR_REPO/blob/main/notebooks/main.ipynb
+```
 
-3. **Share with the team**  
-   - In Colab: **File → Share** and add your group.  
-   - For submission: **File → Save a copy to GitHub** (if connected) or download the notebook and add it to this repo.  
-   - In this README, add: **"Main notebook (Colab): [paste Colab link here]"**.
+1. Open the link (or Colab → **File → Open notebook → GitHub** and paste repo URL).
+2. **Dataset:** Upload your CSV via **Files (left sidebar) → Upload**, or mount Drive and read from there. Set the path in the first data-loading cell (e.g. `"/content/your_file.csv"` or path in `data/`).
+3. **Run:** **Runtime → Run all** (or run cells top to bottom). Use the `%pip install` cell if needed, then restart and run again.
+4. **Colab guide:** See `notebooks/COLAB_GUIDE.md`.
 
 ### Option B: Local run
 
-1. **Clone the repo** (or download and unzip).
-2. **Create a virtual environment** (recommended):
-   ```bash
-   python -m venv .venv
-   .venv\Scripts\activate   # Windows
-   # source .venv/bin/activate   # Mac/Linux
-   ```
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. **Dataset:**  
-   - Place your dataset in the `data/` folder (e.g. `data/your_dataset.csv`).  
-   - If the dataset is large or from Kaggle, add download steps in this README and tell readers to save the file into `data/`.
-5. **Run the notebook:**  
-   - From the project root: `jupyter notebook notebooks/`  
-   - Open your main notebook and run top to bottom.  
-   - In the notebook, load data with `../data/your_file.csv` or `./data/your_file.csv` depending on your working directory.
+1. Clone the repo.
+2. (Optional) `python -m venv .venv` then activate (e.g. `.venv\Scripts\activate` on Windows).
+3. `pip install -r requirements.txt`
+4. Put the dataset in `data/` (e.g. `data/supply_chain.csv`). See `data/README.md` for source and naming.
+5. From project root: `jupyter notebook notebooks/` → open `main.ipynb` and run all cells top to bottom.
+
+---
 
 ## Repo structure
 
 ```
 README.md
 requirements.txt
-notebooks/       # Your Jupyter notebooks
-slides/          # Final presentation slides
-figures/         # Optional: exported charts
-data/            # Dataset (if small) or see data/README.md
+PROPOSAL.md          # Full capstone proposal (problem, data, plan, roles)
+notebooks/           # main.ipynb = main analysis
+slides/              # Final presentation
+figures/             # Exported charts (optional)
+data/                # Dataset (see data/README.md)
+src/                 # Optional scripts
 ```
 
-## Limitations and ethics (optional)
+## Making the notebook easy to read
 
-- Bias risks, privacy notes, limitations, responsible use.
+- Section headers in markdown so the flow is clear.
+- Short explanations (1–3 sentences) for important decisions.
+- Keep outputs that support the story; remove noisy prints.
+- Runnable top to bottom (data path works for Colab and local).
 
 ---
 
