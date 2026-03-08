@@ -21,7 +21,7 @@ Late deliveries are one of the most damaging and costly problems in e-commerce l
 
 ## Data
 
-- **Source:** E-commerce supply chain dataset (order, shipping, customer, product information). Publicly available; link to be added in `data/README.md` or below.
+- **Source:** E-commerce supply chain dataset (order, shipping, customer, product information). [Dataset (Mendeley)](https://data.mendeley.com/datasets/8gx2fvg2k6/1)
 - **What one row represents:** One order line item — one product within one customer order, with its delivery and shipping record.
 - **Key columns:** `Late_delivery_risk` (target), `Days for shipping (real)`, `Days for shipment (scheduled)`, `Shipping Mode`, `Order Region`, `Market`, `Customer Segment`, `Category Name`, discount/benefit/order status/date, etc. See `PROPOSAL.md` for the full data dictionary.
 
