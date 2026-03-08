@@ -1,6 +1,6 @@
 # Late Delivery Risk Prediction for E-Commerce Supply Chain Optimization
 
-**Team members:** [Names]  
+**Team members:** Ameed Aburub, Aman Abuelayyan, Ruaa Luay, Dalah Hashlamoon, Sura Sammour  
 **Track:** Supervised Learning — Binary Classification  
 **IBT x GGateway Data Science and Machine Learning Bootcamp | 2025**
 
