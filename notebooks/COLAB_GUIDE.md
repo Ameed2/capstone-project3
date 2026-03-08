@@ -2,7 +2,7 @@
 
 ## 1. Open Google Colab
 
-1. Go to **https://colab.research.google.com/**
+1. Go to **[This Shared Colab Notebook](https://colab.research.google.com/drive/1ttKnFps_UTJELX2Kz7J1ftbK63u6tjUJ?usp=sharing)**
 2. Sign in with your Google account.
 
 ---
