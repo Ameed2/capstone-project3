@@ -14,9 +14,9 @@
 - If the dataset is **small and allowed**: place the file in this folder (e.g. `data/supply_chain.csv` or the name provided by the source).
 - If **large or from Kaggle**: keep this folder empty in the repo. In the main **README**, add:
   - The download link
-  - Short steps (e.g. "Download from [link], save as `data/your_file.csv`")
+  - Short steps (e.g. "Download from [https://data.mendeley.com/datasets/8gx2fvg2k6/1], save as `data/supple_chain.csv`")
 
 ### Using the data in the notebook
 
 - **Local:** From project root, use `data/your_file.csv`. From `notebooks/`, use `../data/your_file.csv`.
-- **Colab:** Upload the CSV to session storage (or mount Drive) and set the path in the first data-loading cell (e.g. `"/content/your_file.csv"`).
+- **Colab:** Upload the CSV to session storage (or mount Drive) and set the path in the first data-loading cell (e.g. `"/content/supply_chain.csv"`).
