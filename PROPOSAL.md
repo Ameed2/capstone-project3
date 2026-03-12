@@ -5,10 +5,11 @@
 
 | | |
 |---|---|
-| **Track** | Supervised Learning — Binary Classification |
+| **Track** | Supervised Learning — **Classification + Regression** |
 | **Primary Stakeholder** | Supply Chain / Logistics Manager |
-| **Primary Metric** | Recall (late delivery class) + F1-Score |
-| **Target Variable** | `Late_delivery_risk` (0 = on time, 1 = late) |
+| **Primary Metrics** | Recall (late class) + F1; RMSE/R² (delay magnitude); **Risk Score** (prioritization) |
+| **Targets** | `Late_delivery_risk` (0/1), `Delay_Gap` (real − scheduled days) |
+| **Deliverable** | Classifier + regressor combined into an actionable **Risk Score** |
 | **Optional Extra** | Power BI dashboard (post-core completion only) |
 
 ---
@@ -17,9 +18,9 @@
 
 Late deliveries are one of the most damaging and costly problems in e-commerce logistics. Every delayed shipment erodes customer trust, increases operational costs through complaints and refunds, and strains relationships between retailers and their fulfillment partners. Despite having rich order and shipping data, most logistics teams react to delays after they happen — when it is already too late to intervene.
 
-This project builds a binary classification model that predicts whether an order is at risk of late delivery before it ships, using features such as shipping mode, the gap between scheduled and real shipping days, order region, product category, customer segment, and market. The model enables a supply chain logistics manager to proactively flag high-risk orders and take corrective action — such as upgrading the shipping method, rerouting an order, or alerting the customer early.
+This project builds **two linked models**: (1) a **binary classifier** that predicts whether an order will be late, and (2) a **regressor** that predicts *by how many days* (delay gap). We combine them into a single **Risk Score** (e.g. P(late) × severity of predicted delay) so the manager can prioritize the worst cases first. Features include shipping mode, the gap between scheduled and real shipping days, order region, product category, customer segment, and market. The model enables a supply chain logistics manager to proactively flag high-risk orders and take corrective action — such as upgrading the shipping method, rerouting an order, or alerting the customer early.
 
-Success means delivering a model that achieves strong recall on the late-delivery class (minimizing missed high-risk orders), alongside interpretable output that a logistics manager can act on in day-to-day operations.
+Success means delivering a classifier and regressor that achieve strong recall and sensible delay predictions on the held-out test set, plus an interpretable **Risk Score** and feature importance that a logistics manager can act on in day-to-day operations.
 
 ---
 
@@ -48,7 +49,8 @@ Each row represents a single order line item — one product within one customer
 
 | Column | Type | Role in Project |
 |--------|------|-----------------|
-| Late_delivery_risk | Binary (0/1) | Target variable — predict this |
+| Late_delivery_risk | Binary (0/1) | Classification target — predict this |
+| Delay_Gap | Numeric (derived) | Regression target — real days − scheduled days; built in cleaning |
 | Days for shipping (real) | Numeric | Actual days taken to ship |
 | Days for shipment (scheduled) | Numeric | Planned shipping days |
 | Shipping Mode | Categorical | Key feature — mode of delivery |
@@ -77,19 +79,21 @@ Each row represents a single order line item — one product within one customer
 ### 4.1 Core Workflow
 
 - Data loading, initial inspection, and data dictionary creation
-- Data cleaning: fix type issues, handle missing values, remove duplicates, treat outliers carefully
-- Exploratory Data Analysis (EDA): distributions, relationships, patterns by region/mode/segment
-- Feature engineering: encode categoricals, scale numerics, derive delay gap feature (real minus scheduled days)
-- Baseline model: Logistic Regression with train/test split
-- Improved models: Random Forest, then hyperparameter tuning with GridSearchCV
-- Evaluation: Recall, F1-score, confusion matrix, ROC-AUC — reported in a comparison table
-- Interpretation: Feature importance to explain what drives late delivery risk
+- Data cleaning: fix type issues, handle missing values, remove duplicates, derive **Delay_Gap** (regression target)
+- Exploratory Data Analysis (EDA): distributions of delay gap and late rate by region/mode/segment
+- Feature engineering: encode categoricals, single feature matrix for both classifier and regressor; exclude leakage (e.g. Delivery Status)
+- **Dual baselines:** Logistic Regression (classification) and Ridge (regression) with shared train/test split
+- **Risk score:** combine P(late) and predicted delay into one prioritization score
+- Improved models: Random Forest for classification and regression; optional GridSearchCV
+- Evaluation: comparison table — Recall, F1, ROC-AUC (classification) and RMSE, R² (regression)
+- Interpretation: Feature importance for both models to explain what drives late risk and delay magnitude
 
 ### 4.2 Success Criteria
 
-- **Recall** on the late-delivery class **exceeds 75%** on the held-out test set
-- **F1-score** on the late-delivery class **exceeds 70%** on the held-out test set
-- Feature importance output is interpretable and actionable for a logistics manager
+- **Classification:** **Recall** on the late-delivery class **≥ 75%** and **F1 ≥ 70%** on the held-out test set
+- **Regression:** Report **RMSE** and **R²** for predicted delay (Delay_Gap) on the test set
+- **Risk score:** Deliver an actionable score (e.g. P(late) × (1 + max(0, predicted delay))) so the manager can prioritize orders
+- Feature importance for both the classifier and the regressor is interpretable and actionable for a logistics manager
 
 A clean, complete workflow with honest evaluation matters more than chasing the highest possible score. We will not tune on the test set.
 
