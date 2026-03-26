@@ -1,6 +1,3 @@
-# Capstone project - Python dependencies for local run
-# Install: pip install -r requirements.txt
-
 jupyter>=1.0.0
 notebook>=7.0.0
 pandas>=2.0.0
@@ -8,6 +5,8 @@ numpy>=1.24.0
 matplotlib>=3.7.0
 seaborn>=0.12.0
 scikit-learn>=1.3.0
+shap
+xgboost
 
 # Uncomment if your project needs them:
 # scipy>=1.11.0
