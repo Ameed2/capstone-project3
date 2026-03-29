@@ -4,6 +4,7 @@ survey_results_schema.csv
 data/*.csv
 data/*.xlsx
 data/*.parquet
+data
 
 # Node (if present; capstone is Python)
 node_modules/
