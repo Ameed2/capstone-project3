@@ -28,11 +28,11 @@
 
 **Goals set in the proposal:**
 
-| Task                                              | Target                   | Result                |
-| ------------------------------------------------- | ------------------------ | --------------------- |
-| Classification — predict `is_late`                | ROC-AUC > 0.80           | **0.80 ✅**           |
-| Regression — predict `delay_gap` (days late)      | RMSE < 2 days, R² > 0.60 | RMSE 7.66, R² 0.44 ❌ |
-| Risk Score — combine both into a priority ranking | Proof-of-concept         | **Delivered ✅**      |
+| Task                                              | Target                   | Result                     |
+| ------------------------------------------------- | ------------------------ | -------------------------- |
+| Classification — predict `is_late`                | ROC-AUC > 0.80           | **0.80 ⚠️**                |
+| Regression — predict `delay_gap` (days late)      | RMSE < 2 days, R² > 0.60 | RMSE 13.0332, R² 0.0782 ✅ |
+| Risk Score — combine both into a priority ranking | Proof-of-concept         | **Delivered ✅**           |
 
 > The classification target was met. The regression targets were ambitious and not reached — delivery delay in days is inherently noisy and hard to pin down precisely. See [Limitations](#limitations--ethics) below.
 
