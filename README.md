@@ -2,7 +2,7 @@
 
 **Predicting late deliveries in Brazilian e-commerce before they happen.**
 
-![Olist E-Commerce Data Lifecycle](./assets/olist_flow.jpg)
+![Olist E-Commerce Data Lifecycle](./figures/olist_flow.jpg)
 
 ---
 
@@ -56,7 +56,7 @@ The dataset contains **~100k orders** placed on the Olist marketplace between 20
 | geolocation          | 1,000,163 | One lat/lng record per zip code    |
 | category_translation | 71        | Portuguese → English category name |
 
-![Data Schema](./assets/olist_data_schema.jpg)
+![Data Schema](./figures/olist_data_schema.jpg)
 
 **Key limitations:**
 
