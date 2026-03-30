@@ -86,10 +86,10 @@ NB05  Supervised Modelling
 
 **Key design decisions:**
 
-- **Time-based train/test split** (oldest 80% train, newest 20% test) to simulate real deployment.
+- **Time-based train/test split** (80% train, 20% test) to simulate real deployment.
 - **Bottleneck seller** defined as the seller with the latest shipping limit per order — they are the rate-limiting factor in multi-seller orders.
 - **Haversine distance** between seller and customer zip code centroids, driven by the EDA finding that geography is the strongest delay signal.
-- **Class imbalance** handled via `class_weight='balanced'` / `scale_pos_weight`, evaluated with F1 and ROC-AUC (not accuracy).
+- **Class imbalance** handled via `class_weight='balanced'` / `scale_pos_weight`, evaluated with Recall and ROC-AUC.
 
 ---
 
@@ -99,19 +99,19 @@ NB05  Supervised Modelling
 
 | Model               | Test ROC-AUC | Train-Test Gap | Status       |
 | ------------------- | ------------ | -------------- | ------------ |
-| Logistic Regression | 0.726        | +0.005 ✅      | Baseline     |
-| Random Forest       | 0.756        | +0.050 ⚠️      |              |
-| XGBoost             | 0.800        | +0.051 ⚠️      |              |
-| **XGBoost (Tuned)** | **0.800**    | **+0.082 ⚠️**  | **Selected** |
+| Logistic Regression | 0.7255       | +0.0052 ✅     | Baseline     |
+| Random Forest       | 0.7538       | +0.0511 ⚠️     |              |
+| XGBoost             | 0.7992       | +0.0508 ⚠️     |              |
+| **XGBoost (Tuned)** | **0.7985**   | **+0.0800 ⚠️** | **Selected** |
 
 ### Regression (predict `delay_gap` in days)
 
-| Model               | Test RMSE | Test R²   | Train-Test Gap (R²) |
-| ------------------- | --------- | --------- | ------------------- |
-| Linear Regression   | 8.60      | 0.293     | +0.061 ⚠️           |
-| Random Forest       | 7.92      | 0.400     | +0.022 ✅           |
-| XGBoost             | 7.73      | 0.429     | +0.033 ✅           |
-| **XGBoost (Tuned)** | **7.66**  | **0.439** | **+0.114 ❌**       |
+| Model               | Test RMSE   | Test R²    | Train-Test Gap (R²) |
+| ------------------- | ----------- | ---------- | ------------------- |
+| Linear Regression   | 8.60        | 0.293      | +0.061 ⚠️           |
+| Random Forest       | 13.1        | 0.0684     | +0.0218 ✅          |
+| XGBoost             | 13.1069     | 0.0677     | +0.0146 ✅          |
+| **XGBoost (Tuned)** | **13.0332** | **0.0782** | **+0.0371 ✅**      |
 
 ### Risk Score
 
