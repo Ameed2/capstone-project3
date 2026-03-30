@@ -1,101 +1,209 @@
-# Late Delivery Risk Prediction for E-Commerce Supply Chain Optimization
+# Olist Delivery Delay Prediction
 
-**Team members:** Ameed Aburub, Aman Abuelayyan, Ruaa Luay, Dalah Hashlamoon, Sura Sammour  
-**Track:** Supervised Learning — Binary Classification  
-**IBT x GGateway Data Science and Machine Learning Bootcamp | 2025**
+**Predicting late deliveries in Brazilian e-commerce before they happen.**
+
+![Olist E-Commerce Data Lifecycle](./assets/olist_flow.jpg)
 
 ---
 
-## Problem and goal
+## Team
 
-Late deliveries are one of the most damaging and costly problems in e-commerce logistics. This project builds a **binary classification model** that predicts whether an order is at risk of late delivery **before it ships**, using order and shipping data. The goal is to give supply chain / logistics managers a proactive tool to flag high-risk orders and take corrective action (e.g. upgrade shipping, reroute, or alert the customer).
+| Name               |
+| ------------------ |
+| _Aman Abuelayyan_  |
+| _Ameed Aburub_     |
+| _Dalah Hashlamoon_ |
+| _Ruaa Luay_        |
+| _Sura Sammour_     |
 
-- **Target variable:** `Late_delivery_risk` (0 = on time, 1 = late)
-- **Primary metrics:** Recall on the late-delivery class (minimize missed high-risk orders) and F1-score
-- **Success criteria:** Recall ≥ 75%, F1 ≥ 70% on the held-out test set; interpretable feature importance for the stakeholder
+---
 
-## Who benefits
+## Problem & Goal
 
-- **Primary stakeholder:** Supply chain / logistics manager — prioritize intervention, choose smarter shipping modes, reduce refunds and complaints, protect customer satisfaction.
-- **Secondary:** Customer service (fewer reactive complaints), leadership (visibility into fulfillment by region and category).
+**Late deliveries** damage customer trust, inflate support costs, and drive negative reviews. On the Olist marketplace, roughly **8% of delivered orders arrive after the promised date** — and those orders disproportionately receive 1–2 star reviews.
+
+**Business question:** _Can we predict how late an order will be, and combine that with its price to produce a single, actionable risk score — before the order is even shipped?_
+
+**Stakeholders:** Olist operations team, logistics partners, and marketplace sellers.
+
+**Goals set in the proposal:**
+
+| Task                                              | Target                   | Result                     |
+| ------------------------------------------------- | ------------------------ | -------------------------- |
+| Classification — predict `is_late`                | ROC-AUC > 0.80           | **0.80 ⚠️**                |
+| Regression — predict `delay_gap` (days late)      | RMSE < 2 days, R² > 0.60 | RMSE 13.0332, R² 0.0782 ✅ |
+| Risk Score — combine both into a priority ranking | Proof-of-concept         | **Delivered ✅**           |
+
+> The classification target was met. The regression targets were ambitious and not reached — delivery delay in days is inherently noisy and hard to pin down precisely. See [Limitations](#limitations--ethics) below.
+
+---
 
 ## Data
 
-- **Source:** E-commerce supply chain dataset (order, shipping, customer, product information). [Dataset (Mendeley)](https://data.mendeley.com/datasets/8gx2fvg2k6/1)
-- **What one row represents:** One order line item — one product within one customer order, with its delivery and shipping record.
-- **Key columns:** `Late_delivery_risk` (target), `Days for shipping (real)`, `Days for shipment (scheduled)`, `Shipping Mode`, `Order Region`, `Market`, `Customer Segment`, `Category Name`, discount/benefit/order status/date, etc. See `PROPOSAL.md` for the full data dictionary.
+**Source:** [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) (Kaggle)
+
+The dataset contains **~100k orders** placed on the Olist marketplace between 2016 and 2018, spread across 9 relational tables.
+
+| Table                | Rows      | One row represents                 |
+| -------------------- | --------- | ---------------------------------- |
+| orders               | 99,441    | One unique order                   |
+| order_items          | 112,650   | One item within an order           |
+| order_payments       | 103,886   | One payment transaction            |
+| order_reviews        | 99,224    | One customer review                |
+| customers            | 99,441    | One customer (per order)           |
+| sellers              | 3,095     | One seller                         |
+| products             | 32,951    | One product                        |
+| geolocation          | 1,000,163 | One lat/lng record per zip code    |
+| category_translation | 71        | Portuguese → English category name |
+
+![Data Schema](./assets/olist_data_schema.jpg)
+
+**Key limitations:**
+
+- All identifying names are anonymized (replaced with Game of Thrones house names).
+- Review scores are collected _after_ delivery — they cannot be used as model features.
+- Geolocation has multiple coordinate entries per zip code (aggregated to centroids).
+- After cleaning and scope filtering to delivered orders only: **96,455 rows** retained.
+
+---
 
 ## Approach
 
-1. **Data loading & cleaning** — Load data, fix types, handle missing values, remove duplicates, treat outliers.
-2. **EDA** — Distributions, late vs on-time by shipping mode / region / segment.
-3. **Feature engineering** — Encode categoricals, derive delay gap (real − scheduled days), scale as needed.
-4. **Baseline** — Logistic Regression with train/test split and `class_weight='balanced'` if imbalanced.
-5. **Improved models** — Random Forest, then hyperparameter tuning (e.g. GridSearchCV).
-6. **Evaluation** — Recall, F1, confusion matrix, ROC-AUC in a comparison table.
-7. **Interpretation** — Feature importance so a logistics manager can act on the model.
+The project follows a five-notebook pipeline:
 
-We avoid data leakage (e.g. do not use `Delivery Status` as a feature when it encodes the outcome). Optional extra: Power BI dashboard after core completion (see `PROPOSAL.md`).
+```
+NB01  Data Understanding & Cleaning
+  ↓   Fix types, handle missing values, flag anomalies, create target variable
+NB02  Data Merging
+  ↓   Join 9 tables → one-row-per-order dataset (96,455 × 38)
+NB03  Exploratory Data Analysis
+  ↓   Distribution, correlation, geographic, temporal, and seller analysis
+NB04  Feature Engineering
+  ↓   54 features: seller metrics, haversine distance, temporal, log transforms
+NB05  Supervised Modelling
+      Classification + Regression + Risk Score
+```
+
+**Key design decisions:**
+
+- **Time-based train/test split** (80% train, 20% test) to simulate real deployment.
+- **Bottleneck seller** defined as the seller with the latest shipping limit per order — they are the rate-limiting factor in multi-seller orders.
+- **Haversine distance** between seller and customer zip code centroids, driven by the EDA finding that geography is the strongest delay signal.
+- **Class imbalance** handled via `class_weight='balanced'` / `scale_pos_weight`, evaluated with Recall and ROC-AUC.
+
+---
 
 ## Results
 
-- *(To be filled after modeling)* Metric table (Recall, F1, confusion matrix, ROC-AUC).
-- *(To be filled)* Key charts: feature importance, confusion matrix, ROC curve (in `figures/` or inline).
+### Classification (predict `is_late`)
+
+| Model               | Test ROC-AUC | Train-Test Gap | Status       |
+| ------------------- | ------------ | -------------- | ------------ |
+| Logistic Regression | 0.7255       | +0.0052 ✅     | Baseline     |
+| Random Forest       | 0.7538       | +0.0511 ⚠️     |              |
+| XGBoost             | 0.7992       | +0.0508 ⚠️     |              |
+| **XGBoost (Tuned)** | **0.7985**   | **+0.0800 ⚠️** | **Selected** |
+
+### Regression (predict `delay_gap` in days)
+
+| Model               | Test RMSE   | Test R²    | Train-Test Gap (R²) |
+| ------------------- | ----------- | ---------- | ------------------- |
+| Linear Regression   | 8.60        | 0.293      | +0.061 ⚠️           |
+| Random Forest       | 13.1        | 0.0684     | +0.0218 ✅          |
+| XGBoost             | 13.1069     | 0.0677     | +0.0146 ✅          |
+| **XGBoost (Tuned)** | **13.0332** | **0.0782** | **+0.0371 ✅**      |
+
+### Risk Score
+
+A combined metric multiplying late probability × predicted delay × order value weight, giving operations teams a single number to prioritize interventions.
+
+### Key Visuals
+
+**Target imbalance:** 91.9% on-time vs 8.1% late (11:1 ratio). A naive baseline of "always predict on-time" already hits ~92% accuracy — the model must beat this using F1 and AUC.
+
+**Geography matters most:** States in Brazil's North and Northeast show 2–3× the late rate of Southeastern states, where most sellers are concentrated. Haversine distance became a top feature.
+
+**Physical features correlate with delays:** Heavier, bulkier orders (furniture, home appliances) show the highest late rates — weight, volume, and freight are strong pre-shipment predictors.
+
+**Temporal spikes:** Late delivery rate spikes during holiday seasons (Black Friday, December), suggesting logistics capacity constraints.
+
+---
 
 ## Conclusion
 
-- *(To be filled)* What we learned; what we would recommend or do next.
+**What we learned:**
+
+- Delivery delays are predictable from pre-shipment information, especially **seller-customer distance**, **estimated delivery buffer**, and **physical product characteristics**.
+- XGBoost achieved the classification target (ROC-AUC = 0.80) but the regression task is inherently harder — predicting the exact number of days late requires more granular logistics data.
+- The Risk Score framework provides a practical way to prioritize at-risk orders for intervention.
+
+**What we would do next:**
+
+- Add real-time seller performance features (computed only on historical data, not full-dataset leakage).
+- Incorporate weather and carrier-level data for more precise delay estimation.
+- Deploy the Risk Score as an operational dashboard for the logistics team.
+- Apply SHAP explainability to surface per-order reasons for high risk.
 
 ---
 
-## How to run this project
+## How to Run
 
-We support **both** Google Colab and local run.
+### Google Colab (recommended)
 
-### Option A: Google Colab
+1. Upload the `assets/data/raw/` CSV files from the [Kaggle dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) to your Google Drive.
+2. Open each notebook in order (`01` → `05`). Update the `DATA_PATH` variable to point to your Drive folder.
+3. Run all cells sequentially — each notebook saves its outputs for the next.
 
-**One-click open (after the repo is on GitHub):**  
-Replace `YOUR_USERNAME` and `YOUR_REPO` with your GitHub username and repo name (use `master` instead of `main` if your default branch is `master`):
+### Local
 
+```bash
+pip install pandas numpy matplotlib seaborn scikit-learn xgboost
+jupyter notebook
 ```
-https://colab.research.google.com/github/YOUR_USERNAME/YOUR_REPO/blob/main/notebooks/main.ipynb
-```
 
-1. Open the link (or Colab → **File → Open notebook → GitHub** and paste repo URL).
-2. **Dataset:** Upload your CSV via **Files (left sidebar) → Upload**, or mount Drive and read from there. Set the path in the first data-loading cell (e.g. `"/content/your_file.csv"` or path in `data/`).
-3. **Run:** **Runtime → Run all** (or run cells top to bottom). Use the `%pip install` cell if needed, then restart and run again.
-4. **Colab guide:** See `notebooks/COLAB_GUIDE.md`.
-
-### Option B: Local run
-
-1. Clone the repo.
-2. (Optional) `python -m venv .venv` then activate (e.g. `.venv\Scripts\activate` on Windows).
-3. `pip install -r requirements.txt`
-4. Put the dataset in `data/` (e.g. `data/supply_chain.csv`). See `data/README.md` for source and naming.
-5. From project root: `jupyter notebook notebooks/` → open `main.ipynb` and run all cells top to bottom.
+Run notebooks in order. Ensure `assets/data/raw/` contains the Kaggle CSVs.
 
 ---
 
-## Repo structure
+## Limitations & Ethics
 
-```
-README.md
-requirements.txt
-PROPOSAL.md          # Full capstone proposal (problem, data, plan, roles)
-notebooks/           # main.ipynb = main analysis
-slides/              # Final presentation
-figures/             # Exported charts (optional)
-data/                # Dataset (see data/README.md)
-src/                 # Optional scripts
-```
-
-## Making the notebook easy to read
-
-- Section headers in markdown so the flow is clear.
-- Short explanations (1–3 sentences) for important decisions.
-- Keep outputs that support the story; remove noisy prints.
-- Runnable top to bottom (data path works for Colab and local).
+- **Class imbalance:** At 8% late rate, the model's precision for the late class is low (~23%). This means many flagged orders will actually arrive on time — acceptable for proactive outreach, but not for punitive actions against sellers.
+- **Seller history:** The model cannot fairly predict the score for new sellers joining Olist as they would not have history such that the model could learn from.
+- **Risk score:** The model doesn't predict the risk score very well because the data doesn't show loss in profit due to late delivers.
+- **Anonymization:** Customer and seller identities are already anonymized in the dataset. No personal data is exposed. Also, the reviews have encrypted the seller names as the houses in Game of Thrones.
+- **Temporal scope:** Data covers 2016–2018. Logistics infrastructure and Olist's operations may have changed significantly since then.
 
 ---
 
-*One submission per group. Submit the repo link by end of Week 12.*
+## Repository Structure
+
+```
+├── 01_data_understanding_cleaning.ipynb   # Load, inspect, clean raw data
+├── 02_merge_dataset.ipynb                 # Join tables → order-level dataset
+├── 03_eda.ipynb                           # Exploratory data analysis
+├── 04_feature_engineering.ipynb           # Build 54 model-ready features
+├── 05_supervised_modelling.ipynb          # Train, tune, evaluate models
+├── assets/
+│   ├── data/raw/                          # Original Kaggle CSVs (not tracked)
+│   ├── data/cleaned/                      # Output of NB01
+│   ├── data/merged/                       # Output of NB02
+│   ├── data/features/                     # Output of NB04
+│   ├── olist_data_schema.jpg
+│   ├── olist_flow.jpg
+│   └── product_listing_example.png
+├── README.md                              # This file
+├── PROPOSAL.md                            # Project proposal
+└── notebooks/                             # Per-notebook READMEs
+    ├── README_01_cleaning.md
+    ├── README_02_merging.md
+    ├── README_03_eda.md
+    ├── README_04_features.md
+    └── README_05_modelling.md
+```
+
+---
+
+## Credits
+
+- **Dataset:** [Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) — released under CC BY-NC-SA 4.0
+- **Libraries:** pandas, scikit-learn, XGBoost, matplotlib, seaborn
