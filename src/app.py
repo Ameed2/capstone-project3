@@ -20,6 +20,7 @@ import folium
 from folium.plugins import HeatMap
 import streamlit as st
 import streamlit.components.v1 as components
+from utils import load_models, predict
 
 warnings.filterwarnings("ignore")
 
@@ -453,6 +454,51 @@ def load_data():
         return df, items_geo, None
     except FileNotFoundError as e:
         return None, None, str(e)
+
+
+@st.cache_data(show_spinner=False)
+def load_features_reference():
+    base = Path(__file__).resolve().parent.parent
+    p = base / "data" / "processed" / "olist_features.csv"
+    if p.exists():
+        return pd.read_csv(p), None
+    return None, f"Feature reference file not found: {p}"
+
+
+@st.cache_resource(show_spinner=False)
+def load_prediction_models():
+    try:
+        clf, reg = load_models()
+        return clf, reg, None
+    except Exception as e:
+        return None, None, str(e)
+
+
+def category_group_from_name(category_name):
+    c = str(category_name).lower()
+    if any(k in c for k in ["furniture", "bed", "bath", "table", "home", "appliance", "kitchen"]):
+        return "bulky_home"
+    if any(k in c for k in ["computer", "pc", "audio", "eletron", "phone", "camera"]):
+        return "electronics"
+    if any(k in c for k in ["fashion", "apparel", "bag", "watch", "shoe"]):
+        return "fashion"
+    if any(k in c for k in ["beauty", "health", "perfum", "cosmetic"]):
+        return "health_beauty"
+    if any(k in c for k in ["book", "media", "food", "drink"]):
+        return "media_food"
+    if any(k in c for k in ["sport", "leisure", "toy"]):
+        return "sports_leisure"
+    return "other"
+
+
+def purchase_hour_bucket_from_hour(hour):
+    if 0 <= hour < 6:
+        return "late_night"
+    if 6 <= hour < 12:
+        return "morning"
+    if 12 <= hour < 18:
+        return "afternoon"
+    return "evening"
 
 def _add_coords(df_in, state_col, lon_col="lon", lat_col="lat"):
     df_out = df_in.copy()
@@ -980,6 +1026,136 @@ def lookup_eta_stats(profiles, query):
     return None
 
 
+def build_model_input_row(
+    feat_df,
+    feature_names,
+    seller_state,
+    customer_state,
+    selected_category,
+    planned_order_ts,
+    order_value,
+    n_items,
+    state_rate,
+    seller_state_rate,
+    distance_km,
+):
+    """Construct a model feature row from simulator inputs + historical template."""
+    if feat_df is None:
+        raise ValueError("Feature reference dataframe is unavailable.")
+
+    group = category_group_from_name(selected_category)
+    distance_km = 0.0 if pd.isna(distance_km) else float(distance_km)
+    hour = 12
+    quarter = int(((planned_order_ts.month - 1) // 3) + 1)
+    bucket = purchase_hour_bucket_from_hour(hour)
+
+    # Use the closest historical segment as a template.
+    cand = feat_df.copy()
+    for filt in [
+        (cand["customer_state"] == customer_state)
+        & (cand["bottleneck_seller_state"] == seller_state)
+        & (cand["dominant_category_group"] == group),
+        (cand["customer_state"] == customer_state)
+        & (cand["dominant_category_group"] == group),
+        (cand["customer_state"] == customer_state),
+    ]:
+        seg = cand.loc[filt]
+        if len(seg) >= 40:
+            cand = seg
+            break
+
+    num_cols = cand.select_dtypes(include=np.number).columns
+    cat_cols = cand.select_dtypes(exclude=np.number).columns
+
+    def _mode_or_default(series, default):
+        s = series.dropna()
+        if s.empty:
+            return default
+        m = s.mode()
+        return m.iloc[0] if not m.empty else s.iloc[0]
+
+    row = {}
+    for c in feature_names:
+        if c in num_cols:
+            row[c] = float(cand[c].median())
+        elif c in cat_cols:
+            row[c] = _mode_or_default(cand[c], "unknown")
+        else:
+            row[c] = 0
+
+    # Core overrides from simulator inputs.
+    total_price = float(max(order_value, 1))
+    n_items = int(max(n_items, 1))
+    freight_ratio = float((cand["total_freight"] / cand["total_price"].replace(0, np.nan)).median())
+    if np.isnan(freight_ratio):
+        freight_ratio = 0.15
+    total_freight = max(0.0, total_price * freight_ratio)
+    total_payment_value = total_price + total_freight
+
+    row["has_timestamp_issue"] = 0
+    row["customer_state"] = customer_state
+    row["bottleneck_seller_state"] = seller_state
+    row["n_items"] = n_items
+    row["total_price"] = total_price
+    row["max_item_price"] = total_price / n_items
+    row["total_freight"] = total_freight
+    row["total_payment_value"] = total_payment_value
+    row["n_payment_methods"] = 1
+    row["max_installments"] = 1
+    row["payment_type"] = "credit_card"
+    row["seller_customer_distance_km"] = distance_km
+    row["n_unique_categories"] = 1
+    row["n_unique_sellers"] = 1
+    row["n_unique_seller_states"] = 1 if seller_state == customer_state else 2
+    row["has_multi_state_sellers"] = int(seller_state != customer_state)
+    row["shipping_limit_spread_days"] = 0
+
+    # Category flags + dominant group.
+    for g in [
+        "bulky_home",
+        "electronics",
+        "fashion",
+        "health_beauty",
+        "media_food",
+        "other",
+        "sports_leisure",
+    ]:
+        row[f"has_cat_{g}"] = int(g == group)
+    row["dominant_category_group"] = group
+
+    # Temporal fields.
+    row["purchase_year"] = int(planned_order_ts.year)
+    row["purchase_month"] = int(planned_order_ts.month)
+    row["purchase_quarter"] = quarter
+    row["purchase_dayofweek"] = int(planned_order_ts.dayofweek)
+    row["purchase_hour"] = hour
+    row["is_weekend_purchase"] = int(planned_order_ts.dayofweek >= 5)
+    row["purchase_hour_bucket"] = bucket
+
+    # Target-encoded / numeric helper fields.
+    row["customer_state_te"] = float(state_rate)
+    row["bottleneck_seller_state_te"] = float(seller_state_rate)
+    row["log_seller_customer_distance_km"] = np.log1p(max(distance_km, 0))
+    row["log_total_price"] = np.log1p(max(total_price, 0))
+    row["log_max_item_price"] = np.log1p(max(row["max_item_price"], 0))
+    row["log_total_freight"] = np.log1p(max(total_freight, 0))
+    row["log_total_payment_value"] = np.log1p(max(total_payment_value, 0))
+
+    # Encoded categorical fallbacks based on historical mapping.
+    if {"payment_type", "payment_type_enc"}.issubset(feat_df.columns):
+        payment_enc_map = feat_df.groupby("payment_type")["payment_type_enc"].median().to_dict()
+        row["payment_type_enc"] = int(round(payment_enc_map.get(row["payment_type"], row.get("payment_type_enc", 1))))
+    if {"dominant_category_group", "dominant_category_group_enc"}.issubset(feat_df.columns):
+        cat_enc_map = feat_df.groupby("dominant_category_group")["dominant_category_group_enc"].median().to_dict()
+        row["dominant_category_group_enc"] = int(round(cat_enc_map.get(group, row.get("dominant_category_group_enc", 0))))
+    if {"purchase_hour_bucket", "purchase_hour_bucket_enc"}.issubset(feat_df.columns):
+        hour_enc_map = feat_df.groupby("purchase_hour_bucket")["purchase_hour_bucket_enc"].median().to_dict()
+        row["purchase_hour_bucket_enc"] = int(round(hour_enc_map.get(bucket, row.get("purchase_hour_bucket_enc", 1))))
+
+    # Keep only model-expected columns in exact order.
+    return pd.DataFrame([{c: row.get(c, 0) for c in feature_names}])
+
+
 def render_order_risk_page(df_raw, items_geo_raw):
     st.markdown("## Logistics Order Risk Simulator")
     st.caption(
@@ -1054,8 +1230,7 @@ def render_order_risk_page(df_raw, items_geo_raw):
     else:
         category_rate = global_rate
 
-    # Blend + small operational adjustments.
-    # Category is included because product type changes handling/transit complexity.
+    # Historical heuristic (legacy baseline used before model integration).
     base_risk = (
         0.40 * corridor_rate
         + 0.25 * city_rate
@@ -1064,8 +1239,48 @@ def render_order_risk_page(df_raw, items_geo_raw):
     )
     season_multiplier = 0.9 + (q_rate / global_rate) * 0.1 if global_rate > 0 else 1.0
     order_multiplier = 1.0 + min((order_value / 3000) * 0.08 + (n_items / 12) * 0.08, 0.16)
-    risk = float(np.clip(base_risk * season_multiplier * order_multiplier, 0, 1))
-    risk_pct = risk * 100
+    historical_risk_pct = float(np.clip(base_risk * season_multiplier * order_multiplier, 0, 1) * 100)
+
+    # Model-connected inference using uploaded classifier/regressor.
+    model_out = None
+    model_mode_note = "Historical heuristic mode (model not loaded)."
+    pred_gap_days = 0.0
+    dist_km = state_distance_km(seller_state, customer_state)
+    seller_state_lookup = items_geo_raw.groupby("seller_state")["is_late"].mean()
+    seller_state_rate = float(seller_state_lookup.get(seller_state, global_rate))
+
+    clf, reg, model_err = load_prediction_models()
+    feat_df, feat_err = load_features_reference()
+    if clf is not None and reg is not None and feat_df is not None:
+        try:
+            model_input = build_model_input_row(
+                feat_df=feat_df,
+                feature_names=clf.feature_names_in_,
+                seller_state=seller_state,
+                customer_state=customer_state,
+                selected_category=selected_category,
+                planned_order_ts=planned_order_ts,
+                order_value=order_value,
+                n_items=n_items,
+                state_rate=state_rate,
+                seller_state_rate=seller_state_rate,
+                distance_km=dist_km,
+            )
+            model_out = predict(clf, reg, model_input)
+            pred_gap_days = float(model_out["pred_gap"])
+            risk_pct = float(model_out["p_late"])
+            tier = model_out["tier"]
+            model_mode_note = (
+                f"Model-connected mode: probability and delay from uploaded model artifacts. "
+                f"Legacy heuristic risk = {historical_risk_pct:.1f}%."
+            )
+        except Exception as e:
+            risk_pct = historical_risk_pct
+            model_mode_note = f"Model inference failed, using heuristic fallback. Details: {e}"
+    else:
+        risk_pct = historical_risk_pct
+        details = model_err or feat_err or "missing resources"
+        model_mode_note = f"Heuristic mode (model/files unavailable: {details})."
 
     if risk_pct >= 20:
         tier = "High"
@@ -1091,12 +1306,11 @@ def render_order_risk_page(df_raw, items_geo_raw):
 
     # Data-driven ETA from historical segment profiles (route + category + distance + month).
     profiles, global_eta = build_eta_profiles(df_raw, items_geo_raw)
-    state_dist_km = state_distance_km(seller_state, customer_state)
+    state_dist_km = dist_km
     dist_bin = distance_bin_from_km(state_dist_km)
     query = {
         "seller_state": seller_state,
         "customer_state": customer_state,
-        "customer_city": customer_city,
         "category": selected_category,
         "distance_bin": dist_bin,
         "month": planned_order_ts.month,
@@ -1116,9 +1330,10 @@ def render_order_risk_page(df_raw, items_geo_raw):
     else:
         rec_days = p50_days
 
-    recommended_days = int(np.clip(np.ceil(rec_days + complexity_buffer), 2, 90))
+    model_delay_buffer = min(max(pred_gap_days, 0.0), 15.0)
+    recommended_days = int(np.clip(np.ceil(rec_days + complexity_buffer + 0.5 * model_delay_buffer), 2, 90))
     window_start_days = int(np.clip(np.floor(p50_days), 1, 90))
-    window_end_days = int(np.clip(np.ceil(p90_days + complexity_buffer), 2, 95))
+    window_end_days = int(np.clip(np.ceil(p90_days + complexity_buffer + model_delay_buffer), 2, 95))
 
     eta_date = planned_order_ts + pd.Timedelta(days=recommended_days)
     eta_start = planned_order_ts + pd.Timedelta(days=window_start_days)
@@ -1128,7 +1343,11 @@ def render_order_risk_page(df_raw, items_geo_raw):
     k1.metric("Predicted Late Risk", f"{risk_pct:.1f}%")
     k2.metric("Risk Tier", tier)
     k3.metric("Historical Corridor Late %", f"{corridor_rate*100:.1f}%")
-    k4.metric("Category Baseline Late %", f"{category_rate*100:.1f}%")
+    if model_out is not None:
+        k4.metric("Model Predicted Delay", f"{pred_gap_days:.1f} days")
+    else:
+        k4.metric("Category Baseline Late %", f"{category_rate*100:.1f}%")
+    st.caption(model_mode_note)
 
     e1, e2, e3 = st.columns(3)
     e1.metric("Suggested ETA", eta_date.strftime("%d %b %Y"))
@@ -1175,6 +1394,22 @@ def render_order_risk_page(df_raw, items_geo_raw):
             "Historical quantiles",
         ],
     })
+    if model_out is not None:
+        why_df = pd.concat(
+            [
+                why_df,
+                pd.DataFrame(
+                    [
+                        {
+                            "Driver": "Model output (classifier + regressor)",
+                            "Value": f"{model_out['p_late']:.1f}% late prob, {model_out['pred_gap']:.1f}d delay",
+                            "Contribution": "Primary score",
+                        }
+                    ]
+                ),
+            ],
+            ignore_index=True,
+        )
     st.table(why_df)
 
     st.markdown("### Recommended actions")
