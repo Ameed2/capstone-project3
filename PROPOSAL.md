@@ -6,7 +6,7 @@ Olist is the largest department store in Brazilian marketplaces, connecting smal
 
 A persistent operational challenge is **late deliveries**. When an order arrives after the estimated delivery date, customers leave negative reviews, contact support, and lose trust in the platform. This damages both Olist's reputation and the individual seller's standing.
 
-**Business question:** Can we predict whether an order will be delivered late — _before it ships_ — so that the operations team can proactively intervene on high-risk orders?
+**Business question:** Can we predict how late an order will be, and combine that with its price to produce a single, actionable risk score — before the order is even shipped?
 
 ## 2. Target Users
 

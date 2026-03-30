@@ -22,7 +22,7 @@
 
 **Late deliveries** damage customer trust, inflate support costs, and drive negative reviews. On the Olist marketplace, roughly **8% of delivered orders arrive after the promised date** — and those orders disproportionately receive 1–2 star reviews.
 
-**Business question:** _Can we predict whether an order will be delivered late, before it ships, so Olist can proactively manage at-risk orders?_
+**Business question:** _Can we predict how late an order will be, and combine that with its price to produce a single, actionable risk score — before the order is even shipped?_
 
 **Stakeholders:** Olist operations team, logistics partners, and marketplace sellers.
 
@@ -167,10 +167,10 @@ Run notebooks in order. Ensure `assets/data/raw/` contains the Kaggle CSVs.
 
 ## Limitations & Ethics
 
-- **Data leakage risk:** `seller_late_rate_smooth` was computed on the full dataset. In production, this must use only historical (past) orders to avoid look-ahead bias.
 - **Class imbalance:** At 8% late rate, the model's precision for the late class is low (~23%). This means many flagged orders will actually arrive on time — acceptable for proactive outreach, but not for punitive actions against sellers.
-- **Geographic bias:** The model may systematically flag orders to remote regions. Care should be taken not to disadvantage customers or sellers in underserved areas.
-- **Anonymization:** Customer and seller identities are already anonymized in the dataset. No personal data is exposed.
+- **Seller history:** The model cannot fairly predict the score for new sellers joining Olist as they would not have history such that the model could learn from.
+- **Risk score:** The model doesn't predict the risk score very well because the data doesn't show loss in profit due to late delivers.
+- **Anonymization:** Customer and seller identities are already anonymized in the dataset. No personal data is exposed. Also, the reviews have encrypted the seller names as the houses in Game of Thrones.
 - **Temporal scope:** Data covers 2016–2018. Logistics infrastructure and Olist's operations may have changed significantly since then.
 
 ---
