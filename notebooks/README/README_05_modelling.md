@@ -35,12 +35,12 @@ _Tuned Classifier Hyperparameters:_ `colsample_bytree=0.8`, `learning_rate=0.05`
 
 **Note:** The regression models were filtered to evaluate **late orders only** (Target: `delay_gap` > 0). Predicting the exact delay duration is inherently noisy. Original targets (RMSE < 2, R² > 0.60) were revised because the delivery variance in this dataset makes sub-2-day RMSE unachievable without post-shipment data.
 
-| Model                         | Test RMSE (days) | Test R²    | Test MAE (days) | Train-Test R² Gap | Verdict     |
-| ----------------------------- | ---------------- | ---------- | --------------- | ----------------- | ----------- |
-| Linear Regression             | 23.14            | -1.9059    | 17.65           | +0.0446           | ❌ Poor Fit |
-| Random Forest Reg (Default)   | 13.10            | 0.0684     | 7.46            | +0.0218           | ✅ Good     |
-| XGBoost Reg (Default)         | 13.10            | 0.0677     | 7.53            | +0.0146           | ✅ Good     |
-| **Random Forest Reg (Tuned)** | **13.03**        | **0.0782** | **7.46**        | +0.0371           | ✅ Good     |
+| Model                         | Test RMSE (days) | Test R²    | Test MAE (days) | Train-Test R² Gap | Verdict         |
+| ----------------------------- | ---------------- | ---------- | --------------- | ----------------- | --------------- |
+| Linear Regression             | 8.60             | 0.293      | 5.10            | +0.061            | ⚠️ Mild overfit |
+| Random Forest Reg (Default)   | 13.10            | 0.0684     | 7.46            | +0.0218           | ✅ Good         |
+| XGBoost Reg (Default)         | 13.10            | 0.0677     | 7.53            | +0.0146           | ✅ Good         |
+| **Random Forest Reg (Tuned)** | **13.03**        | **0.0782** | **7.46**        | +0.0371           | ✅ Good         |
 
 **Best regressor:** Random Forest Regressor (Tuned) — RMSE = 13.03 days.
 
