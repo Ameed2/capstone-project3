@@ -32,8 +32,10 @@ Thumbs.db
 *.swp
 *.swo
 
-# Large or sensitive files
+# Large or sensitive files (tracked final models for Streamlit — see models/ or model/)
 *.pkl
+!models/*.pkl
+!model/*.pkl
 *.joblib
 *.h5
 *.hdf5

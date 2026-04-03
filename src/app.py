@@ -20,7 +20,7 @@ import folium
 from folium.plugins import HeatMap
 import streamlit as st
 import streamlit.components.v1 as components
-from utils import load_models, predict
+from utils import classify_delivery_tier, load_models, predict
 
 warnings.filterwarnings("ignore")
 
@@ -1282,22 +1282,25 @@ def render_order_risk_page(df_raw, items_geo_raw):
         details = model_err or feat_err or "missing resources"
         model_mode_note = f"Heuristic mode (model/files unavailable: {details})."
 
-    if risk_pct >= 20:
-        tier = "High"
+    # Tier + advice: when the model runs, keep utils.predict() tier (do not re-bucket with other cutoffs).
+    if model_out is not None:
+        tier = model_out["tier"]
+    else:
+        tier = classify_delivery_tier(risk_pct / 100.0)
+
+    if tier == "High":
         advice = [
             "Prioritize fast carrier allocation and proactive ETA communication.",
             "Escalate to operations watchlist for same-day monitoring.",
             "Consider split shipment if multiple items are involved.",
         ]
-    elif risk_pct >= 12:
-        tier = "Medium"
+    elif tier == "Medium":
         advice = [
             "Use standard carrier with tighter SLA monitoring.",
             "Send customer proactive tracking updates.",
             "Validate dispatch cut-off and warehouse capacity.",
         ]
     else:
-        tier = "Low"
         advice = [
             "Proceed with normal fulfillment flow.",
             "Keep automated check-ins for SLA adherence.",
