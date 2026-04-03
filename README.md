@@ -129,6 +129,35 @@ A combined metric multiplying late probability × predicted delay × order value
 
 ---
 
+## Streamlit Dashboard — Late Delivery Simulation & Insights
+
+An interactive web app that brings the model to life for non-technical stakeholders.
+
+### Pages
+
+| Page | What it does |
+| --- | --- |
+| **Overview Dashboard** | KPI cards (total orders, late %, avg delay, risk distribution) with filters for date range, state, and product category. |
+| **Late Delivery Simulator** | Enter order parameters (seller/customer state, weight, dimensions, freight, delivery buffer) → get a live prediction: late probability, predicted delay, and risk score. |
+| **Geographic Analysis** | Folium map of Brazil colored by late rate per state, with seller→customer route drill-down. |
+| **Feature Importance** | Global SHAP summary plot + per-prediction waterfall chart showing why an order is flagged. |
+| **Model Performance** | Interactive ROC curve, confusion matrix, regression scatter, and a threshold slider to tune precision vs. recall. |
+
+### How to run the dashboard
+
+```bash
+pip install streamlit streamlit-folium plotly shap joblib xgboost scikit-learn pandas
+streamlit run app.py
+```
+
+The app loads the trained XGBoost models from `assets/models/` and the feature matrix from `assets/data/features/`. You can also upload a CSV of new orders for batch scoring.
+
+### Screenshots
+
+> _Screenshots will be added after the dashboard is finalized._
+
+---
+
 ## Conclusion
 
 **What we learned:**
@@ -143,6 +172,7 @@ A combined metric multiplying late probability × predicted delay × order value
 - Incorporate weather and carrier-level data for more precise delay estimation.
 - Deploy the Risk Score as an operational dashboard for the logistics team.
 - Apply SHAP explainability to surface per-order reasons for high risk.
+- Extend the Streamlit dashboard with real-time data connectors and alert integrations.
 
 ---
 
@@ -157,11 +187,11 @@ A combined metric multiplying late probability × predicted delay × order value
 ### Local
 
 ```bash
-pip install pandas numpy matplotlib seaborn scikit-learn xgboost
+pip install pandas numpy matplotlib seaborn scikit-learn xgboost streamlit streamlit-folium plotly shap
 jupyter notebook
 ```
 
-Run notebooks in order. Ensure `assets/data/raw/` contains the Kaggle CSVs.
+Run notebooks in order. Ensure `assets/data/raw/` contains the Kaggle CSVs. To launch the dashboard, run `streamlit run app.py` after the notebooks have generated the model files.
 
 ---
 
@@ -183,11 +213,19 @@ Run notebooks in order. Ensure `assets/data/raw/` contains the Kaggle CSVs.
 ├── 03_eda.ipynb                           # Exploratory data analysis
 ├── 04_feature_engineering.ipynb           # Build 54 model-ready features
 ├── 05_supervised_modelling.ipynb          # Train, tune, evaluate models
+├── app.py                                 # Streamlit dashboard entry point
+├── pages/                                 # Streamlit multi-page modules
+│   ├── 1_overview.py
+│   ├── 2_simulator.py
+│   ├── 3_geographic.py
+│   ├── 4_feature_importance.py
+│   └── 5_model_performance.py
 ├── assets/
 │   ├── data/raw/                          # Original Kaggle CSVs (not tracked)
 │   ├── data/cleaned/                      # Output of NB01
 │   ├── data/merged/                       # Output of NB02
 │   ├── data/features/                     # Output of NB04
+│   ├── models/                            # Saved XGBoost models (joblib)
 │   ├── olist_data_schema.jpg
 │   ├── olist_flow.jpg
 │   └── product_listing_example.png
@@ -206,4 +244,4 @@ Run notebooks in order. Ensure `assets/data/raw/` contains the Kaggle CSVs.
 ## Credits
 
 - **Dataset:** [Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) — released under CC BY-NC-SA 4.0
-- **Libraries:** pandas, scikit-learn, XGBoost, matplotlib, seaborn
+- **Libraries:** pandas, scikit-learn, XGBoost, matplotlib, seaborn, Streamlit, Plotly, SHAP

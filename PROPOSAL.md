@@ -72,13 +72,36 @@ The dataset includes 9 relational tables covering orders, items, payments, revie
 2. A model-ready feature matrix with 50+ engineered features.
 3. Trained XGBoost classification and regression models.
 4. A Risk Score proof-of-concept combining both models.
-5. Documentation: main README, proposal, and per-notebook READMEs.
+5. **Streamlit Dashboard** — an interactive web app for late delivery simulation and operational insights (see details below).
+6. Documentation: main README, proposal, and per-notebook READMEs.
+
+### Streamlit Dashboard — Late Delivery Simulation & Insights
+
+The dashboard serves as the project's user-facing deliverable, translating model outputs into an interactive tool that stakeholders can use without touching code.
+
+**Planned pages:**
+
+| Page | Purpose |
+| --- | --- |
+| **Overview Dashboard** | High-level KPIs: total orders, late %, average delay, risk score distribution. Filterable by date range, state, and product category. |
+| **Late Delivery Simulator** | Users input order parameters (seller state, customer state, product weight/dimensions, freight value, estimated delivery buffer) and receive a real-time prediction: late probability, predicted delay in days, and risk score. |
+| **Geographic Analysis** | Interactive map of Brazil showing late delivery rates by state, with drill-down to seller–customer route pairs. |
+| **Feature Importance Explorer** | Visual breakdown of which features drive the model's predictions (global SHAP summary + per-prediction waterfall). |
+| **Model Performance** | ROC curve, confusion matrix, regression scatter plots, and threshold tuning slider so operations teams can set their own precision/recall trade-off. |
+
+**Technical plan:**
+
+- Load the trained XGBoost models (classification + regression) via `joblib`.
+- Use `streamlit-folium` for geographic visualizations and `plotly` for interactive charts.
+- Provide a CSV upload option so users can batch-score new orders.
+- Deploy via Streamlit Community Cloud (free tier) with the GitHub repo as source.
 
 ## 7. Tools & Libraries
 
 - **Data:** pandas, NumPy
 - **Visualization:** matplotlib, seaborn
 - **Modeling:** scikit-learn, XGBoost
+- **Dashboard:** Streamlit, streamlit-folium, Plotly
 - **Environment:** Google Colab / Jupyter Notebook
 
 ## 8. Risks & Mitigations
@@ -97,4 +120,5 @@ The dataset includes 9 relational tables covering orders, items, payments, revie
 | 1    | Data understanding, cleaning, merging |
 | 2    | EDA and feature engineering           |
 | 3    | Modeling, tuning, risk score          |
-| 4    | Documentation, final review           |
+| 4    | Streamlit dashboard development       |
+| 5    | Documentation, final review           |
