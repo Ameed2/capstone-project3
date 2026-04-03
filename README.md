@@ -137,11 +137,8 @@ An interactive web app that brings the model to life for non-technical stakehold
 
 | Page | What it does |
 | --- | --- |
-| **Overview Dashboard** | KPI cards (total orders, late %, avg delay, risk distribution) with filters for date range, state, and product category. |
+| **Overview Dashboard & Geographic Analysis** | KPI cards (total orders, late %, avg delay, risk distribution) with filters for date range, state, and product category. Folium map of Brazil colored by late rate per state, with seller→customer route drill-down. |
 | **Late Delivery Simulator** | Enter order parameters (seller/customer state, weight, dimensions, freight, delivery buffer) → get a live prediction: late probability, predicted delay, and risk score. |
-| **Geographic Analysis** | Folium map of Brazil colored by late rate per state, with seller→customer route drill-down. |
-| **Feature Importance** | Global SHAP summary plot + per-prediction waterfall chart showing why an order is flagged. |
-| **Model Performance** | Interactive ROC curve, confusion matrix, regression scatter, and a threshold slider to tune precision vs. recall. |
 
 ### How to run the dashboard
 
@@ -213,19 +210,9 @@ Run notebooks in order. Ensure `assets/data/raw/` contains the Kaggle CSVs. To l
 ├── 03_eda.ipynb                           # Exploratory data analysis
 ├── 04_feature_engineering.ipynb           # Build 54 model-ready features
 ├── 05_supervised_modelling.ipynb          # Train, tune, evaluate models
-├── app.py                                 # Streamlit dashboard entry point
-├── pages/                                 # Streamlit multi-page modules
-│   ├── 1_overview.py
-│   ├── 2_simulator.py
-│   ├── 3_geographic.py
-│   ├── 4_feature_importance.py
-│   └── 5_model_performance.py
+├── src/                                   # Streamlit dashboard entry point
+│   ├── app.py
 ├── assets/
-│   ├── data/raw/                          # Original Kaggle CSVs (not tracked)
-│   ├── data/cleaned/                      # Output of NB01
-│   ├── data/merged/                       # Output of NB02
-│   ├── data/features/                     # Output of NB04
-│   ├── models/                            # Saved XGBoost models (joblib)
 │   ├── olist_data_schema.jpg
 │   ├── olist_flow.jpg
 │   └── product_listing_example.png
