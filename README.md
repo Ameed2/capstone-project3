@@ -212,7 +212,7 @@ Run notebooks in order. Ensure `assets/data/raw/` contains the Kaggle CSVs. To l
 ├── 05_supervised_modelling.ipynb          # Train, tune, evaluate models
 ├── src/                                   # Streamlit dashboard entry point
 │   ├── app.py
-├── assets/
+├── figures/
 │   ├── olist_data_schema.jpg
 │   ├── olist_flow.jpg
 │   └── product_listing_example.png
