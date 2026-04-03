@@ -83,11 +83,8 @@ The dashboard serves as the project's user-facing deliverable, translating model
 
 | Page | Purpose |
 | --- | --- |
-| **Overview Dashboard** | High-level KPIs: total orders, late %, average delay, risk score distribution. Filterable by date range, state, and product category. |
+| **Overview Dashboard and Geographic Analysis** | High-level KPIs: total orders, late %, average delay, risk score distribution. Filterable by date range, state, and product category. Visual breakdown of which features drive the model's predictions (global SHAP summary + per-prediction waterfall). |
 | **Late Delivery Simulator** | Users input order parameters (seller state, customer state, product weight/dimensions, freight value, estimated delivery buffer) and receive a real-time prediction: late probability, predicted delay in days, and risk score. |
-| **Geographic Analysis** | Interactive map of Brazil showing late delivery rates by state, with drill-down to seller–customer route pairs. |
-| **Feature Importance Explorer** | Visual breakdown of which features drive the model's predictions (global SHAP summary + per-prediction waterfall). |
-| **Model Performance** | ROC curve, confusion matrix, regression scatter plots, and threshold tuning slider so operations teams can set their own precision/recall trade-off. |
 
 **Technical plan:**
 
