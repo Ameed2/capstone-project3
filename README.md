@@ -141,18 +141,16 @@ An interactive web app that brings the model to life for non-technical stakehold
 | **Late Delivery Simulator** | Enter order parameters (seller/customer state, weight, dimensions, freight, delivery buffer) → get a live prediction: late probability, predicted delay, and risk score. |
 
 ### How to run the dashboard
-
-```bash
-pip install streamlit streamlit-folium plotly shap joblib xgboost scikit-learn pandas
-streamlit run app.py
-```
-
-The app loads the trained XGBoost models from `assets/models/` and the feature matrix from `assets/data/features/`. You can also upload a CSV of new orders for batch scoring.
+Just enter the link provided ![Streamlit Dashboard](https://capstone-project3-rxhvn47msqcyzsoryfr3ld.streamlit.app/)
 
 ### Screenshots
+![Dashboard_1](./figures/streamlit_dashboards_3.jpg)
 
-> _Screenshots will be added after the dashboard is finalized._
+![Dashboard_2](./figures/streamlit_dashboards_1.jpg)
 
+![Dashboard_3](./figures/streamlit_dashboards_2.jpg)
+
+![Simulation](./figures/streamlit_simulation.jpg)
 ---
 
 ## Conclusion
