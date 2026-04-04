@@ -144,13 +144,13 @@ An interactive web app that brings the model to life for non-technical stakehold
 Just enter the link provided [Streamlit Dashboard](https://capstone-project3-rxhvn47msqcyzsoryfr3ld.streamlit.app/)
 
 ### Screenshots
-![Dashboard_1](./figures/streamlit_dashboards_3.jpg)
+![Dashboard_1](./figures/streamlit_dashboards_3.png)
 
-![Dashboard_2](./figures/streamlit_dashboards_1.jpg)
+![Dashboard_2](./figures/streamlit_dashboards_1.png)
 
-![Dashboard_3](./figures/streamlit_dashboards_2.jpg)
+![Dashboard_3](./figures/streamlit_dashboards_2.png)
 
-![Simulation](./figures/streamlit_simulation.jpg)
+![Simulation](./figures/streamlit_simulation.png)
 ---
 
 ## Conclusion
