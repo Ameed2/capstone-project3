@@ -141,7 +141,7 @@ An interactive web app that brings the model to life for non-technical stakehold
 | **Late Delivery Simulator** | Enter order parameters (seller/customer state, weight, dimensions, freight, delivery buffer) → get a live prediction: late probability, predicted delay, and risk score. |
 
 ### How to run the dashboard
-Just enter the link provided ![Streamlit Dashboard](https://capstone-project3-rxhvn47msqcyzsoryfr3ld.streamlit.app/)
+Just enter the link provided [Streamlit Dashboard](https://capstone-project3-rxhvn47msqcyzsoryfr3ld.streamlit.app/)
 
 ### Screenshots
 ![Dashboard_1](./figures/streamlit_dashboards_3.jpg)
